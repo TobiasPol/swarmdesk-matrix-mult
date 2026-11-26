@@ -1,0 +1,25 @@
+name: sync-targets
+
+on:
+  push:
+    branches: [main]
+    paths: ["targets.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: vars.SWARMDESK_URL != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-check baseline manifest and sync targets.json to Swarmdesk
+        env:
+          SWARMDESK_URL: ${{ vars.SWARMDESK_URL }}
+          VERDICT_SECRET: ${{ secrets.SWARMDESK_VERDICT_SECRET }}
+        run: |
+          node checker/verify.mjs --self-check targets.json
+          scripts/sync-targets.sh
